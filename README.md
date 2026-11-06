@@ -1,1 +1,0 @@
-# R_tesi_icc
