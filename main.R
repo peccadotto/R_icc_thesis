@@ -491,4 +491,4 @@ message("All tables have been successfully exported to the 'export' folder")
 message("All plots have been successfully exported to the 'export' folder")
 
 quarto::quarto_render("report.qmd")
-utils::browseURL(pdf_url)
+utils::browseURL("report.pdf")

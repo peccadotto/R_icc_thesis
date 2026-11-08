@@ -155,32 +155,3 @@ knitr::include_graphics("export/plot_heat_op1.svg")
 knitr::include_graphics("export/plot_heat_op2.svg")
 knitr::include_graphics("export/plot_heat_inter.svg")
 ```
-
-\newpage
-
-```{r}
-#| label: complete-dataframe
-#| echo: false
-#| results: asis
-
-cat("\\begin{verbatim}\n")
-cat("3) COMPLETE DATABASE\n\n")
-
-df_complete <- readRDS("export/df_complete.rds") |> select(c(2, 4, 5, 6, 7))
-colnames(df_complete) <- c("Image ID", "Op.1 - Round 1", "Op. 2 - Round 1", "Op. 1 - Round 2", "Op. 2 - Round 2")
-sep = c(rep("-", 5))
-df_formatted <- df_complete |>
-  mutate(across(where(is.numeric), ~ sprintf("%.1f", .)))
-df_with_header <- rbind(as.list(colnames(df_formatted)), sep, df_formatted)
-df_char <- as.data.frame(lapply(df_with_header, as.character), stringsAsFactors = FALSE)
-df_aligned <- as.data.frame(mapply(format, df_char, justify = c(rep("centre", ncol(df_char))), SIMPLIFY = FALSE), stringsAsFactors = FALSE)
-write.table(
-  df_aligned,
-  row.names = FALSE,
-  col.names = FALSE,
-  quote = FALSE,
-  sep = "     "
-)
-
-cat("\\end{verbatim}\n")
-```
