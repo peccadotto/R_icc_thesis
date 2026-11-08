@@ -1,0 +1,186 @@
+---
+lang: it
+format:
+  pdf:
+    pdf-engine: pdflatex
+    papersize: a4
+    geometry:
+      - portrait
+      - margin = 10mm
+      - top = 20mm
+      - headsep = 8mm
+      - bottom = 25mm
+    fontsize: 10pt
+    linestretch: 1
+    include-in-header:
+      - text: |
+          \usepackage{fancyhdr}
+          \usepackage{lastpage}
+          
+          \pagestyle{fancy}
+          \fancyhf{}
+          
+          \fancyhead[L]{\texttt{\textbf{AGREEMENT AND REPRODUCIBILITY REPORT}}}
+          \fancyhead[R]{\texttt{Author: Andrea Peccati}}
+          \renewcommand{\headrulewidth}{0pt}
+          
+          \newcount\hours
+          \newcount\minutes
+          \newcommand{\printtime}{%
+            \hours=\time
+            \divide\hours by 60
+            \minutes=\time
+            \multiply\hours by 60
+            \advance\minutes by -\hours
+            \divide\hours by 60
+            \ifnum\hours<10 0\fi\the\hours:%
+            \ifnum\minutes<10 0\fi\the\minutes:00%
+          }
+          \renewcommand{\footrulewidth}{0pt}
+          \fancyfoot[L]{\texttt{Print date:~\the\day-\ifnum\month<10 0\fi\the\month-\the\year\ \printtime}}
+          \fancyfoot[R]{\texttt{Page \thepage\ of \pageref*{LastPage}}}
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+```
+
+```{r}
+#| label: icc
+#| echo: false
+#| results: asis
+
+cat("\\begin{verbatim}\n")
+cat("1) AGREEMENT ANALYSIS for continuous variable + Bland-Altman plots\n\n")
+
+recap_var_cont <- readRDS("export/recap_var_cont.rds")
+colnames(recap_var_cont) <- c("Parameter", "Operator 1", "Operator 2", "Inter-rater")
+sep = c(rep("-", length(recap_var_cont)))
+df_formatted <- recap_var_cont |>
+    mutate(across(where(is.numeric), ~ sprintf("%.3f", .)))
+df_with_header <- rbind(as.list(colnames(df_formatted)), sep,  df_formatted)
+df_char <- as.data.frame(lapply(df_with_header, as.character), stringsAsFactors = FALSE)
+df_aligned <- as.data.frame(mapply(format, df_char, justify = c("left", rep("right", ncol(df_char) - 1)), SIMPLIFY = FALSE), stringsAsFactors = FALSE)
+write.table(
+  df_aligned, 
+  row.names = FALSE, 
+  col.names = FALSE, 
+  quote = FALSE, 
+  sep = "     "
+)
+
+cat("\\end{verbatim}\n")
+```
+
+```{r}
+#| label: bland-altman
+#| echo: false
+#| results: asis
+
+cat("\\begin{verbatim}\n")
+
+recap_ba <- readRDS("export/recap_ba.rds")
+colnames(recap_ba) <- c("Analysys", "Diff (mean)", "Diff (SD)", "Lower limit", "Upper limit")
+sep = c(rep("-", length(recap_ba)))
+df_formatted <- recap_ba |>
+  mutate(across(where(is.numeric), ~ sprintf("%.3f", .)))
+df_with_header <- rbind(as.list(colnames(df_formatted)), sep, df_formatted)
+df_char <- as.data.frame(lapply(df_with_header, as.character), stringsAsFactors = FALSE)
+df_aligned <- as.data.frame(mapply(format, df_char, justify = c("left", rep("right", ncol(df_char) - 1)), SIMPLIFY = FALSE), stringsAsFactors = FALSE)
+write.table(
+  df_aligned, 
+  row.names = FALSE, 
+  col.names = FALSE, 
+  quote = FALSE, 
+  sep = "     "
+)
+
+cat("\\end{verbatim}\n")
+cat("\\vspace{0.5cm}\n")
+```
+
+```{r}
+#| label: plot_ba
+#| echo: false
+#| layout-ncol: 2
+#| out-width: 100%
+
+knitr::include_graphics("export/plot_ba_op1.svg")
+knitr::include_graphics("export/plot_ba_op2.svg")
+knitr::include_graphics("export/plot_ba_inter.svg")
+knitr::include_graphics("export/plot_ba_combined.svg")
+```
+
+\newpage
+
+```{r}
+#| label: kappa
+#| echo: false
+#| results: asis
+
+cat("\\begin{verbatim}\n")
+cat("2) AGREEMENT ANALYSIS for categorical variable + Heatmap plots\n\n")
+
+recap_var_cat <- readRDS("export/recap_var_cat.rds")
+colnames(recap_var_cat) <- c("Parameter", "Operator 1", "Operator 2", "Inter-rater")
+sep = c(rep("-", length(recap_var_cat)))
+df_formatted <- recap_var_cat |>
+  mutate(across(where(is.numeric), ~ sprintf("%.3f", .)))
+df_with_header <- rbind(as.list(colnames(df_formatted)), sep, df_formatted)
+df_char <- as.data.frame(lapply(df_with_header, as.character), stringsAsFactors = FALSE)
+df_aligned <- as.data.frame(mapply(format, df_char, justify = c("left", rep("right", ncol(df_char) - 1)), SIMPLIFY = FALSE), stringsAsFactors = FALSE)
+write.table(
+  df_aligned, 
+  row.names = FALSE, 
+  col.names = FALSE, 
+  quote = FALSE, 
+  sep = "     "
+)
+
+cat("\\end{verbatim}\n")
+```
+
+```{r}
+#| label: plot-heat
+#| echo: false
+#| layout-ncol: 2
+#| out-width: 100%
+
+knitr::include_graphics("export/plot_heat_op1.svg")
+knitr::include_graphics("export/plot_heat_op2.svg")
+knitr::include_graphics("export/plot_heat_inter.svg")
+```
+
+\newpage
+
+```{r}
+#| label: complete-dataframe
+#| echo: false
+#| results: asis
+
+cat("\\begin{verbatim}\n")
+cat("3) COMPLETE DATABASE\n\n")
+
+df_complete <- readRDS("export/df_complete.rds") |> select(c(2, 4, 5, 6, 7))
+colnames(df_complete) <- c("Image ID", "Op.1 - Round 1", "Op. 2 - Round 1", "Op. 1 - Round 2", "Op. 2 - Round 2")
+sep = c(rep("-", 5))
+df_formatted <- df_complete |>
+  mutate(across(where(is.numeric), ~ sprintf("%.1f", .)))
+df_with_header <- rbind(as.list(colnames(df_formatted)), sep, df_formatted)
+df_char <- as.data.frame(lapply(df_with_header, as.character), stringsAsFactors = FALSE)
+df_aligned <- as.data.frame(mapply(format, df_char, justify = c(rep("centre", ncol(df_char))), SIMPLIFY = FALSE), stringsAsFactors = FALSE)
+write.table(
+  df_aligned,
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE,
+  sep = "     "
+)
+
+cat("\\end{verbatim}\n")
+```
